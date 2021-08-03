@@ -1,0 +1,4 @@
+<Context>
+	<ResourceLink name="jdbc/complaintmanagementportal"
+		global="jdbc/complaintmanagementportal" type="javax.sql.DataSource" />
+</Context>
