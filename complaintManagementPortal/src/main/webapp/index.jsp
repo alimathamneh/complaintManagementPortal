@@ -23,6 +23,7 @@ body {
 	letter-spacing: 1px;
 	text-transform: uppercase;
 	transition: transform 80ms ease-in;
+	box-shadow: 14px 14px 20px #cbced1, -14px -14px 20px #888888;
 }
 </style>
 </head>
@@ -30,11 +31,6 @@ body {
 	<a href="login.jsp" class="button">Login</a>
 	<br>
 	<a href="signup.jsp" class="button">SignUp</a>
-	<br>
-	<a href="logout.jsp" class="button">Logout</a>
-	<br>
-	<a href="profile.jsp" class="button">Profile</a>
-	<br>
 
 
 </body>

@@ -37,7 +37,7 @@ tr:nth-child(even) {
 
 <body>
 	<h1>Hi ${fname} ${lname}</h1>
-	<a href="logout.jsp">Logout</a>
+	<h6><a href="logout.jsp">Logout</a></h6>
 
 	<c:if test="${admin == 0}">
 		<h4>USER PORTAL</h4>
