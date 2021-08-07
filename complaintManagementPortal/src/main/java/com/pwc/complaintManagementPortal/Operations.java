@@ -2,7 +2,6 @@ package com.pwc.complaintManagementPortal;
 
 import java.io.IOException;
 import java.util.List;
-
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -10,10 +9,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import com.pwc.complaintManagementPortal.DBWork.DB;
 import com.pwc.complaintManagementPortal.bean.ComplaintBean;
 import com.pwc.complaintManagementPortal.bean.UserBean;
+import com.pwc.complaintManagementPortal.utils.Utils;
 
 @WebServlet("/Operations")
 public class Operations extends HttpServlet {
@@ -23,11 +22,20 @@ public class Operations extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		doValidate(request, response);
+
+		if (request.getParameter("numOfRec") != null) {
+			HttpSession session = request.getSession(false);
+			session.setAttribute("numOfRec", Integer.parseInt(request.getParameter("numOfRec")));
+		}
+		try {
+			doValidate(request, response);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 
-	protected void doValidate(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doValidate(HttpServletRequest request, HttpServletResponse response) throws Exception {
 
 		String username = request.getParameter("username");
 		String password = request.getParameter("password");
@@ -50,12 +58,42 @@ public class Operations extends HttpServlet {
 
 			request.setAttribute("complaintList", complaintList);
 
+			HttpSession session = request.getSession(false);
+
+			if (session != null && "1".equals(session.getAttribute("admin"))) {
+
+				int page = 1;
+				int recordsPerPage = session.getAttribute("numOfRec") == null ? 4
+						: Integer.parseInt(session.getAttribute("numOfRec").toString());
+
+				if (request.getParameter("page") != null)
+					page = Integer.parseInt(request.getParameter("page"));
+
+				List<ComplaintBean> list = db.getUserListComplaints((page - 1) * recordsPerPage, recordsPerPage,
+						request);
+
+				int noOfRecords = db.getComplaintsCount(request);
+				int noOfPages = (int) Math.ceil(noOfRecords * 1.0 / recordsPerPage);
+
+				request.setAttribute("employeeList", list);
+				request.setAttribute("noOfPages", noOfPages);
+				request.setAttribute("currentPage", page);
+
+				RequestDispatcher rd = request.getRequestDispatcher("MyJsp.jsp");
+
+				rd.forward(request, response);
+				return;
+			}
+
 			RequestDispatcher rd = request.getRequestDispatcher("portal.jsp");
 
 			rd.forward(request, response);
 			return;
 		} else {
-			RequestDispatcher rd = request.getRequestDispatcher("login.jsp");
+
+			request.getSession().invalidate();
+			request.setAttribute("login_msg", "Invalid Username or Password!");
+			RequestDispatcher rd = request.getRequestDispatcher("/login.jsp");
 			rd.forward(request, response);
 			return;
 		}
@@ -70,7 +108,12 @@ public class Operations extends HttpServlet {
 		String password = request.getParameter("password");
 
 		if (request.getParameter("olduser") != null) {
-			doValidate(request, response);
+
+			try {
+				doValidate(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 			HttpSession session = request.getSession(true);
 			session.setAttribute("username", username);
@@ -78,7 +121,13 @@ public class Operations extends HttpServlet {
 			return;
 		}
 
-		if (request.getParameter("newuser") != null) {
+		if (request.getParameter("signup") != null) {
+
+			try {
+				password = Utils.generateStorngPasswordHash(password);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 			UserBean newUser = new UserBean();
 			newUser.setFirstName(firstName);
@@ -103,8 +152,34 @@ public class Operations extends HttpServlet {
 		if (request.getParameter("submitComp") != null) {
 
 			db.updateComplaint(request.getParameter("result"), request.getParameter("comid"), request);
-			doValidate(request, response);
-			
+
+			try {
+				doValidate(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+		if (request.getParameter("userComp") != null) {
+
+			String userN = request.getSession().getAttribute("username").toString();
+			int added = db.addUserComplaint(request.getParameter("result"),
+					request.getSession().getAttribute("username").toString(), request);
+
+			if (added == 1)
+				request.setAttribute("profile_msg", "The Complaint Added Successfully");
+			else
+				request.setAttribute("profile_msg", "Somthing Want Wrong, Please try Again Later!");
+
+			UserBean user = new UserBean();
+			user.setUsername(userN);
+
+			List<ComplaintBean> complaintList = db.getUserComplaints(user, request);
+			request.setAttribute("complaintList", complaintList);
+
+			RequestDispatcher rd = request.getRequestDispatcher("portal.jsp");
+			rd.forward(request, response);
+			return;
 		}
 
 		request.setAttribute("new", "try again");

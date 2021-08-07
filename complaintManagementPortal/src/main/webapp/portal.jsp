@@ -5,8 +5,6 @@
 <html>
 <head>
 <style>
-
-
 html, body {
 	overflow-x: hidden !important;
 	/*font-family: 'Source Sans Pro', sans-serif;*/
@@ -22,7 +20,7 @@ table {
 	width: 100%;
 }
 
-td, th,input {
+td, th, input {
 	border: 2px solid #dddddd;
 	text-align: center;
 	padding: 10px;
@@ -32,12 +30,48 @@ td, th,input {
 tr:nth-child(even) {
 	background-color: #dddddd;
 }
+
+.center {
+	margin: center;
+	width: 100%;
+	padding: 100px;
+}
+
+li, a {
+	display: block;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
+
+ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: #333;
+}
+
+li a:hover {
+	background-color: #111;
+}
 </style>
 </head>
 
 <body>
-	<h1>Hi ${fname} ${lname}</h1>
-	<h6><a href="logout.jsp">Logout</a></h6>
+
+	<ul>
+		<li>Hi ${fname} ${lname}</li>
+		<li><a href="logout.jsp">Logout</a></li>
+	</ul>
+
+<%
+		String profile_msg = (String) request.getAttribute("profile_msg");
+	if (profile_msg != null) {
+		out.print(profile_msg);
+	}
+	%>
 
 	<c:if test="${admin == 0}">
 		<h4>USER PORTAL</h4>
@@ -55,35 +89,18 @@ tr:nth-child(even) {
 				</tr>
 			</c:forEach>
 		</table>
-	</c:if>
+		<div class="center">
+			<form action="Operations" method="post">
+				<input size="100" type="text" name="result"
+					placeholder="Add new Complaint" required /> <input type="hidden"
+					name="comid" value="newUserComp" /><input type="hidden"
+					id="userComp" name="userComp" value="userComp"><input
+					type="submit" />
+			</form>
+		</div>
 
-	<c:if test="${admin == 1}">
-		<h4>ADMIN PORTAL</h4>
-		<table>
-			<tr>
-				<th>ID</th>
-				<th>Username</th>
-				<th>Complaint</th>
-				<th>Status</th>
-				<th>Result</th>
-			</tr>
-			<c:forEach items="${complaintList}" var="complaintData">
-				<tr class="nav-item" style="cursor: pointer;">
-					<td><c:out value="${complaintData.getId()}" /></td>
-					<td><c:out value="${complaintData.getUsername()}" /></td>
-					<td><c:out value="${complaintData.getComplaint()}" /></td>
-					<td><c:out value="${complaintData.getStatus()}" /></td>
-					<td><div><form action="Operations" method="post">
-							<input size="100" type="text" name="result"
-								placeholder="${complaintData.getResult()}" required /> <input
-								type="hidden" name="comid" value="${complaintData.getId()}" /><input
-								type="hidden" id="submitComp" name="submitComp"
-								value="submitComp"><input type="submit" />
-						</form></div></td>
-				</tr>
-			</c:forEach>
 
-		</table>
+
 	</c:if>
 </body>
 </html>
